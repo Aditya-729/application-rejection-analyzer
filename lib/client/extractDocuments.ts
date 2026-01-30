@@ -1,9 +1,18 @@
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import { createWorker } from "tesseract.js";
 import mammoth from "mammoth";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  "https://unpkg.com/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs";
+let pdfjsPromise: Promise<typeof import("pdfjs-dist/legacy/build/pdf.mjs")> | null = null;
+
+async function loadPdfjs() {
+  if (!pdfjsPromise) {
+    pdfjsPromise = import("pdfjs-dist/legacy/build/pdf.mjs").then((pdfjsLib) => {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://unpkg.com/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs";
+      return pdfjsLib;
+    });
+  }
+  return pdfjsPromise;
+}
 
 export type ExtractedDocument = {
   filename: string;
@@ -41,6 +50,7 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
 }
 
 async function extractPdfText(file: File): Promise<string> {
+  const pdfjsLib = await loadPdfjs();
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   let text = "";
@@ -60,6 +70,7 @@ async function extractPdfOcr(
   worker: Awaited<ReturnType<typeof createWorker>>,
   options: ExtractOptions
 ): Promise<string> {
+  const pdfjsLib = await loadPdfjs();
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const pageCount = Math.min(pdf.numPages, options.maxOcrPages);
