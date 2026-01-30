@@ -5,8 +5,7 @@ Application Rejection Analyzer is a deterministic, rule-based web app that analy
 ## Features
 - Fetches application page content with Mino API (including linked rules/FAQs/PDFs)
 - Extracts eligibility and exclusion lines from the content
-- Client-side document extraction for PDF, DOCX, and images (PNG/JPG)
-- OCR runs locally in the browser for scanned documents (tesseract.js)
+- Client-side document extraction for PDF and DOCX
 - Compares extracted rules with user info and document evidence
 - Returns structured reasons with severity and recommendations
 
@@ -68,4 +67,4 @@ and collects any visible text content returned by the API (including PDFs when t
 ## Notes
 - The system is fully deterministic and does not use any AI model.
 - The app requires only the Mino API to fetch and read content.
-- OCR runs locally in the browser and is optional for scanned documents.
+- Scanned images are not supported in this configuration.

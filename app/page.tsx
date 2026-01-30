@@ -17,52 +17,12 @@ type AnalysisResponse = {
   error?: string;
 };
 
-const MAX_OCR_PAGES = 3;
 const MAX_TEXT_LENGTH = 20000;
-const OCR_TIMEOUT_MS = 20000;
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_MB = 5;
 const ACCEPTED_TYPES = [
   "application/pdf",
-  "image/png",
-  "image/jpeg",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
-
-const OCR_LANGUAGE_OPTIONS = [
-  { value: "eng", label: "English" },
-  { value: "spa", label: "Spanish" },
-  { value: "fra", label: "French" },
-  { value: "deu", label: "German" },
-  { value: "ita", label: "Italian" },
-  { value: "por", label: "Portuguese" },
-  { value: "nld", label: "Dutch" },
-  { value: "swe", label: "Swedish" },
-  { value: "nor", label: "Norwegian" },
-  { value: "dan", label: "Danish" },
-  { value: "fin", label: "Finnish" },
-  { value: "pol", label: "Polish" },
-  { value: "ces", label: "Czech" },
-  { value: "rus", label: "Russian" },
-  { value: "ukr", label: "Ukrainian" },
-  { value: "tur", label: "Turkish" },
-  { value: "ara", label: "Arabic" },
-  { value: "heb", label: "Hebrew" },
-  { value: "hin", label: "Hindi" },
-  { value: "ben", label: "Bengali" },
-  { value: "tam", label: "Tamil" },
-  { value: "tel", label: "Telugu" },
-  { value: "kan", label: "Kannada" },
-  { value: "mal", label: "Malayalam" },
-  { value: "urd", label: "Urdu" },
-  { value: "tha", label: "Thai" },
-  { value: "vie", label: "Vietnamese" },
-  { value: "ind", label: "Indonesian" },
-  { value: "msa", label: "Malay" },
-  { value: "jpn", label: "Japanese" },
-  { value: "kor", label: "Korean" },
-  { value: "zho", label: "Chinese (Simplified)" },
-  { value: "zho_tra", label: "Chinese (Traditional)" },
 ];
 
 const COUNTRY_OPTIONS = [
@@ -310,10 +270,6 @@ export default function HomePage() {
   const [customCountry, setCustomCountry] = useState("");
   const [regionDocs, setRegionDocs] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
-  const [enableOcr, setEnableOcr] = useState(true);
-  const [ocrLanguage, setOcrLanguage] = useState("eng");
-  const [customOcrLanguage, setCustomOcrLanguage] = useState("");
-  const [useCustomOcr, setUseCustomOcr] = useState(false);
   const [ocrStatus, setOcrStatus] = useState("");
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -332,13 +288,8 @@ export default function HomePage() {
         throw new Error("Please fix the document upload errors first.");
       }
 
-      const language = useCustomOcr ? customOcrLanguage.trim() : ocrLanguage;
       const extractedDocs = await extractDocuments(files, {
-        enableOcr,
-        ocrLanguage: language || "eng",
         maxTextLength: MAX_TEXT_LENGTH,
-        maxOcrPages: MAX_OCR_PAGES,
-        ocrTimeoutMs: OCR_TIMEOUT_MS,
         onStatus: setOcrStatus,
       });
 
@@ -501,11 +452,11 @@ export default function HomePage() {
           )}
 
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 md:col-span-2">
-            Supporting Documents (PDF, DOCX, PNG, JPG, JPEG)
+            Supporting Documents (PDF, DOCX)
             <input
               type="file"
               multiple
-              accept=".pdf,.docx,.png,.jpg,.jpeg"
+              accept=".pdf,.docx"
               onChange={(event) => {
                 const nextFiles = Array.from(event.target.files ?? []);
                 const { validFiles, errors } = validateFiles(nextFiles);
@@ -526,61 +477,6 @@ export default function HomePage() {
             )}
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-slate-700 md:col-span-2">
-            <input
-              type="checkbox"
-              checked={enableOcr}
-              onChange={(event) => setEnableOcr(event.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-slate-900"
-            />
-            Run OCR for scanned PDFs (slower, optional)
-          </label>
-
-          {enableOcr && (
-            <>
-              <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-                OCR Language
-                <select
-                  value={ocrLanguage}
-                  onChange={(event) => setOcrLanguage(event.target.value)}
-                  disabled={useCustomOcr}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none disabled:bg-slate-100"
-                >
-                  {OCR_LANGUAGE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={useCustomOcr}
-                  onChange={(event) => setUseCustomOcr(event.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-slate-900"
-                />
-                Use custom OCR language codes (e.g. eng+spa+fra)
-              </label>
-
-              {useCustomOcr && (
-                <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 md:col-span-2">
-                  Custom OCR Languages
-                  <input
-                    type="text"
-                    value={customOcrLanguage}
-                    onChange={(event) => setCustomOcrLanguage(event.target.value)}
-                    placeholder="eng+spa+fra"
-                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
-                  />
-                  <span className="text-xs text-slate-500">
-                    Provide Tesseract language codes. Multiple languages are supported with +.
-                  </span>
-                </label>
-              )}
-            </>
-          )}
         </div>
 
         <button
